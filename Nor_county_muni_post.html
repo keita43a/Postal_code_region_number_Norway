@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Keita Abe" />
+  <meta name="dcterms.date" content="2020-06-10" />
+  <title>Merging the postal code and municipality number of Norway</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+  <style type="text/css">@charset "UTF-8";body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;line-height:1.4;max-width:800px;margin:20px auto;padding:0 10px;color:#363636;background:#fff;text-rendering:optimizeLegibility}button,input,textarea{transition:background-color .1s linear,border-color .1s linear,color .1s linear,box-shadow .1s linear,transform .1s ease}h1{font-size:2.2em;margin-top:0}h1,h2,h3,h4,h5,h6{margin-bottom:12px}h1,h2,h3,h4,h5,h6,strong{color:#000}b,h1,h2,h3,h4,h5,h6,strong,th{font-weight:600}blockquote{border-left:4px solid rgba(0,150,191,.67);margin:1.5em 0;padding:.5em 1em;font-style:italic}blockquote>footer{margin-top:10px;font-style:normal}address,blockquote cite{font-style:normal}a[href^=mailto]:before{content:"📧 "}a[href^=tel]:before{content:"📞 "}a[href^=sms]:before{content:"💬 "}button,input[type=button],input[type=checkbox],input[type=submit]{cursor:pointer}input:not([type=checkbox]):not([type=radio]),select{display:block}button,input,select,textarea{color:#000;background-color:#efefef;font-family:inherit;font-size:inherit;margin-right:6px;margin-bottom:6px;padding:10px;border:none;border-radius:6px;outline:none}button,input:not([type=checkbox]):not([type=radio]),select,textarea{-webkit-appearance:none}textarea{margin-right:0;width:100%;box-sizing:border-box;resize:vertical}button,input[type=button],input[type=submit]{padding-right:30px;padding-left:30px}button:hover,input[type=button]:hover,input[type=submit]:hover{background:#ddd}button:focus,input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(0,150,191,.67)}button:active,input[type=button]:active,input[type=checkbox]:active,input[type=radio]:active,input[type=submit]:active{transform:translateY(2px)}button:disabled,input:disabled,select:disabled,textarea:disabled{cursor:not-allowed;opacity:.5}::-webkit-input-placeholder{color:#949494}:-ms-input-placeholder{color:#949494}::-ms-input-placeholder{color:#949494}::placeholder{color:#949494}a{text-decoration:none;color:#0076d1}a:hover{text-decoration:underline}code,kbd{background:#efefef;color:#000;padding:5px;border-radius:6px}pre>code{padding:10px;display:block;overflow-x:auto}img{max-width:100%}hr{border:none;border-top:1px solid #dbdbdb}table{border-collapse:collapse;margin-bottom:10px;width:100%}td,th{padding:6px;text-align:left}th{border-bottom:1px solid #dbdbdb}tbody tr:nth-child(2n){background-color:#efefef}::-webkit-scrollbar{height:10px;width:10px}::-webkit-scrollbar-track{background:#efefef;border-radius:6px}::-webkit-scrollbar-thumb{background:#d5d5d5;border-radius:6px}::-webkit-scrollbar-thumb:hover{background:#c4c4c4}
+
+</style>
+  <style type="text/css">
+code {
+padding: 2px;
+border-radius: unset;
+}
+
+pre {
+background-color: unset;
+border: solid #aaa 1px;
+padding: 8px;
+}
+pre.numberSource {
+margin: 0;
+padding-left: 0;
+}
+div.sourceCode {
+overflow: visible;
+}
+pre, pre.sourceCode {
+overflow-x: auto;
+}
+pre>code {
+white-space: pre;
+overflow: visible;
+background-color: unset;
+padding: 0;
+}
+pre.sourceCode.numberSource {
+overflow-x: visible;
+}
+pre.sourceCode.numberSource>code {
+white-space: pre-wrap
+}
+pre.sourceCode.numberSource>code>span {
+left: 8px;
+text-indent: -4.6em;
+}
+
+.chunk-summary {
+text-align: right;
+}
+.chunk-summary+pre,
+.chunk-summary+div.sourceCode {
+margin-top: 2px;
+}
+
+nav > ul {
+border: .0625rem solid #444;
+border-radius: 4px;
+margin: 5px;
+padding: 5px;
+}
+nav ul {
+list-style-type: none;
+padding-inline-start: 1rem;
+}
+nav ul li {
+padding: 0;
+}
+nav ul ul {
+margin-top: 0;
+margin-bottom: 0;
+padding-top: 0;
+padding-bottom: 0;
+}
+nav code {
+background-color: unset;
+color: unset;
+}
+</style>
+  <style type="text/css">.tooltip {
+position: relative;
+display: inline-block;
+}
+.tooltip:before, .tooltip:after {
+position: absolute;
+opacity: 0;
+clip: rect(0 0 0 0);
+-webkit-clip-path: inset(100%);
+clip-path: inset(100%);
+transition: all 0.3s;
+z-index: 1010;
+left: 50%;
+}
+.tooltip:not(.bottom):before, .tooltip:not(.bottom):after {
+bottom: 75%;
+}
+.tooltip.bottom:before, .tooltip.bottom:after {
+top: 75%;
+}
+.tooltip:hover:before, .tooltip:hover:after, .tooltip:focus:before, .tooltip:focus:after {
+opacity: 1;
+clip: auto;
+-webkit-clip-path: inset(0%);
+clip-path: inset(0%);
+}
+.tooltip:before {
+content: '';
+background: transparent;
+border: 0.5rem solid transparent;
+left: calc(50% - 0.5rem);
+}
+.tooltip:not(.bottom):before {
+border-top-color: #212121;
+}
+.tooltip.bottom:before {
+border-bottom-color: #212121;
+}
+.tooltip:after {
+content: attr(aria-label);
+color: #fafafa;
+background: #212121;
+border-radius: 0.125rem;
+padding: 0.5rem;
+white-space: nowrap;
+transform: translateX(-50%);
+}
+.tooltip:not(.bottom):after {
+margin-bottom: 1rem;
+}
+.tooltip.bottom:after {
+margin-top: 1rem;
+}
+</style>
+  <style type="text/css">
+.collapse {
+width: calc(100% - 1rem);
+opacity: 1;
+display: flex;
+flex-direction: column;
+margin: 0.5rem;
+border-radius: 0.125rem;
+}
+.collapse > [type="radio"], .collapse > [type="checkbox"] {
+height: 1px;
+width: 1px;
+margin: -1px;
+overflow: hidden;
+position: absolute;
+clip: rect(0 0 0 0);
+-webkit-clip-path: inset(100%);
+clip-path: inset(100%);
+}
+.collapse > label {
+flex-grow: 1;
+display: inline-block;
+height: 1.5rem;
+cursor: pointer;
+transition: background 0.3s;
+color: #212121;
+background: #e8e8e8;
+border: 0.0625rem solid #ddd;
+padding: 0.75rem;
+}
+.collapse > label:hover, .collapse > label:focus {
+background: #f0f0f0;
+}
+.collapse > label + div {
+flex-basis: auto;
+height: 1px;
+width: 1px;
+margin: -1px;
+overflow: hidden;
+position: absolute;
+clip: rect(0 0 0 0);
+-webkit-clip-path: inset(100%);
+clip-path: inset(100%);
+transition: max-height 0.3s;
+max-height: 1px;
+}
+.collapse > :checked + label {
+background: #ececec;
+border-bottom-color: #ececec;
+}
+.collapse > :checked + label + div {
+box-sizing: border-box;
+position: relative;
+width: 100%;
+height: auto;
+overflow: auto;
+margin: 0;
+border: 0.0625rem solid #ddd;
+border-top: 0;
+padding: 0.5rem;
+clip: auto;
+-webkit-clip-path: inset(0%);
+clip-path: inset(0%);
+max-height: 400px;
+}
+.collapse > label:not(:first-of-type) {
+border-top: 0;
+}
+.collapse > label:first-of-type {
+border-radius: 0.125rem 0.125rem 0 0;
+}
+.collapse > label:last-of-type:not(:first-of-type) {
+border-radius: 0 0 0.125rem 0.125rem;
+}
+.collapse > label:last-of-type:first-of-type {
+border-radius: 0.125rem;
+}
+.collapse > :checked:last-of-type:not(:first-of-type) + label {
+border-radius: 0;
+}
+.collapse > :checked:last-of-type + label + div {
+border-radius: 0 0 0.125rem 0.125rem;
+}
+</style>
+  <style type="text/css">@media screen and (max-width: 900px) {
+header, nav, article {
+padding: 0 3rem;
+}
+}
+</style>
+  <style type="text/css">@media screen and (min-width: 900px) {
+body {
+min-width: 900px;
+max-width: 62.5%;
+margin: 0 auto;
+}
+main {
+display: grid;
+grid-template-columns: 300px 1fr;
+grid-template-rows: auto auto;
+}
+header, article {
+min-width: calc(600px - 4rem);
+max-width: calc(100% - 4rem);
+padding: 0 0 0 4rem;
+}
+nav {
+grid-row: 1 / -1;
+grid-columns: 1 / 2;
+border: none;
+margin: 0;
+width: 300px;
+}
+nav > ul {
+position: sticky;
+max-height: 85vh;
+overflow-y: auto;
+top: 5px;
+}
+}
+</style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous" data-external="1">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous" data-external="1"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);" data-external="1"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$$", display: false}
+        ],
+        displayMode: true
+      });
+    });
+  </script>
+</head>
+<body>
+<main>
+<header id="title-block-header">
+<h1 class="title">Merging the postal code and municipality number of Norway</h1>
+<p class="author">Keita Abe</p>
+<p class="date">2020-06-10</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#the-municipality-code-in-2019-and-2020">The municipality code in 2019 and 2020</a></li>
+<li><a href="#the-postal-code-in-2020">The postal code in 2020</a></li>
+<li><a href="#postal-code-before-2020">Postal code before 2020</a></li>
+<li><a href="#merge-old-municipality-info">merge old municipality info</a></li>
+<li><a href="#merge-old-postal-code">Merge old postal code</a></li>
+</ul>
+</nav>
+<article>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>In Norway, there are two types of codes that represents the geographic locations: postal code and municipality number. Postal code (postnummer) is a 4 digits number, mainly used for postal address. Municipality number is also 4 digits, which represents the municipality (kommune), which is a administrative unit. The first two digits of municipality number is corresponding to the county (fylke) which is a larger administrative unit. This two digits of county number is in accordance with ISO 3166-2:NO.((New county number after 2020 has not been published in ISO3166-2 ))</p>
+<p>Some data includes postal codes as location information, but others use municipality number. It is convenient to have a compatible data between municipality number and postal code. The issue is that Norway experienced municipality/county mergers and the numbers are accordingly changed.</p>
+<p>The major mergers of counties are in two times: 2018 and 2020. On January 1st of 2018, Nord-Trøndelag and Sør-Trøndelag counties are merged as Trøndelag. 16 and 17 were assigned to these two counties, but the new county uses 50 as the county code, and the old codes are depreciated. On January 1st of 2020, there happened large merger event and the number of counties became 11 from 19.</p>
+<ul>
+<li>Finnmark and Troms are merged as <em>Troms og Finnmark</em> and assigned the code <em>54</em></li>
+<li>Hordaland and Sogn og Fjordane are merged as <em>Vestland</em> and assigned the code <em>46</em>.</li>
+<li>Aust-Agder and Vest-Agder are merged as <em>Agder</em> and assigned the code <em>42</em>.</li>
+<li>Vestfold and Telemark are merged as <em>Vestfold og Telemark</em> and assigned the code <em>38</em>.</li>
+<li>Hedmark and Oppland are merged as <em>Innlandet</em> and assigned the code <em>34</em>.</li>
+<li>Akershus, Buskerud and Østfold are merged as <em>Viken</em> and assinged the code <em>30</em></li>
+</ul>
+<p>Accordingly, the municipality code are changed.</p>
+</section>
+<section id="the-municipality-code-in-2019-and-2020" class="level1">
+<h1>The municipality code in 2019 and 2020</h1>
+<p>The data of new municipality codes after 2020 mergers are available on <a href="https://www.kartverket.no/en/kommunereform/tekniske-endringer/kommune--og-regionsendringer-2020/">Kartverket</a></p>
+<details class="chunk-details"><summary class="chunk-summary">Source</summary>
+<div class="sourceCode" id="cb1" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>dat_<span class="dv">20</span> &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_xlsx</span>(<span class="st">&quot;fylker-kommuner-2019-2020-alle.xlsx&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="st">  </span><span class="co"># change column names into English</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="st">  </span><span class="kw">set_names</span>(<span class="st">&quot;county_num_2019&quot;</span>,<span class="st">&quot;county_name_2019&quot;</span>,<span class="st">&quot;muni_num_2019&quot;</span>,<span class="st">&quot;muni_name_2019&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4"></a>            <span class="st">&quot;county_num_2020&quot;</span>,<span class="st">&quot;county_name_2020&quot;</span>,<span class="st">&quot;muni_num_2020&quot;</span>,<span class="st">&quot;muni_name_2020&quot;</span>)</span></code></pre></div>
+</details>
+</section>
+<section id="the-postal-code-in-2020" class="level1">
+<h1>The postal code in 2020</h1>
+<p>The data of postal code in 2020 is available on <a href="https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning">bring.no</a></p>
+<details class="chunk-details"><summary class="chunk-summary">Source</summary>
+<div class="sourceCode" id="cb2" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>dat_post_<span class="dv">20</span> &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_xlsx</span>(<span class="st">&quot;Postnummerregister-Excel.xlsx&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="st">  </span><span class="co"># change column names into English</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="st">  </span><span class="kw">set_names</span>(<span class="st">&quot;post_code_2020&quot;</span>,<span class="st">&quot;post_adrs_2020&quot;</span>,<span class="st">&quot;muni_num_2020&quot;</span>,<span class="st">&quot;muni_name_2020&quot;</span>,<span class="st">&quot;post_cat&quot;</span>)</span></code></pre></div>
+</details>
+<p>category (post_cat) represnts what type of postal code is.</p>
+<ul>
+<li>B: Both street addresses and mailboxes</li>
+<li>F: Multiple uses (common)</li>
+<li>G: Street addresses (and location addresses), ie “green mailboxes”</li>
+<li>P: Mailboxes</li>
+<li>S:Service postal code (these postal codes are not used for postal addresses)</li>
+</ul>
+</section>
+<section id="postal-code-before-2020" class="level1">
+<h1>Postal code before 2020</h1>
+<details class="chunk-details"><summary class="chunk-summary">Source</summary>
+<div class="sourceCode" id="cb3" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dat_post_<span class="dv">2003</span>_<span class="dv">2019</span> &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_xlsx</span>(<span class="st">&quot;Nye, endrede og opphørte postnummer.xlsx&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Dato_kronlogisk =</span> <span class="kw">as.Date</span>(Dato_kronlogisk))</span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a>dat_type &lt;-<span class="st"> </span><span class="kw">distinct</span>(dat_post_<span class="dv">2003</span>_<span class="dv">2019</span>) <span class="op">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="st">  </span><span class="kw">distinct</span>(Type_endring) <span class="op">%&gt;%</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Type_change =</span> <span class="kw">c</span>(<span class="st">&quot;Changed primary municipality&quot;</span>, <span class="st">&quot;Changed place name&quot;</span>,<span class="st">&quot;Discontinued and replaced&quot;</span>,<span class="st">&quot;Discontinued, not replaced&quot;</span>,<span class="st">&quot;Changed category&quot;</span>,<span class="st">&quot;newly created&quot;</span>,<span class="st">&quot;Changed zip code&quot;</span>))</span>
+<span id="cb3-7"><a href="#cb3-7"></a></span>
+<span id="cb3-8"><a href="#cb3-8"></a>dat_post_<span class="dv">2003</span>_<span class="dv">2019</span> &lt;-<span class="st"> </span>dat_post_<span class="dv">2003</span>_<span class="dv">2019</span> <span class="op">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="st">  </span><span class="co"># remove the change in 2020 Jan 1st because it&#39;s in dat_post_20</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="st"> </span><span class="co"># filter(Dato_kronlogisk != &quot;2020-01-01&quot; | Type_endring != &quot;Endret primærkommune&quot;) %&gt;%</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="st">  </span><span class="kw">left_join</span>(dat_type)</span></code></pre></div>
+</details>
+</section>
+<section id="merge-old-municipality-info" class="level1">
+<h1>merge old municipality info</h1>
+<p>The code is not elegant, but the compiled data include municipality code and municipality name in each year from 2011 to 2020.</p>
+<details class="chunk-details"><summary class="chunk-summary">Source</summary>
+<div class="sourceCode" id="cb4" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>dat_muni_<span class="dv">20</span> =<span class="st"> </span>dat_<span class="dv">20</span> <span class="op">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">rename_with</span>(<span class="op">~</span><span class="kw">str_replace</span>(.,<span class="st">&quot;_2019&quot;</span>,<span class="st">&quot;_old&quot;</span>), <span class="kw">ends_with</span>(<span class="st">&quot;_2019&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">year =</span> <span class="dv">2019</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="st">  </span><span class="kw">relocate</span>(<span class="kw">ends_with</span>(<span class="st">&quot;_2020&quot;</span>), year)</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="co"># expand the data by years 2003-2019</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>  <span class="co">##dat_muni_expand = dat_muni_20 %&gt;%</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="co">##  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020), year = 2003:2019)</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="co"># merge the expanded data. NAs for 2003-2018 for now</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#dat_muni_20 = dat_muni_20 %&gt;% right_join(dat_muni_expand) %&gt;%</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co">#  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,desc(year))</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a></span>
+<span id="cb4-14"><a href="#cb4-14"></a><span class="co"># make annual data of municipality info</span></span>
+<span id="cb4-15"><a href="#cb4-15"></a></span>
+<span id="cb4-16"><a href="#cb4-16"></a>dat_muni_<span class="dv">03</span>_<span class="dv">19</span> =<span class="st"> </span>dat_post_<span class="dv">2003</span>_<span class="dv">2019</span> <span class="op">%&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="st">  </span><span class="kw">filter</span>(Type_change <span class="op">==</span><span class="st"> &quot;Changed primary municipality&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">year =</span> <span class="kw">year</span>(Dato_kronlogisk)<span class="op">-</span><span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="st">  </span><span class="kw">distinct</span>(year,Kommunenr, Kommune,Kommunenr_etter,Kommune_etter)</span>
+<span id="cb4-20"><a href="#cb4-20"></a>  </span>
+<span id="cb4-21"><a href="#cb4-21"></a></span>
+<span id="cb4-22"><a href="#cb4-22"></a>dat_muni_<span class="dv">20</span>_<span class="dv">2</span> =<span class="st"> </span>dat_muni_<span class="dv">20</span> <span class="op">%&gt;%</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a><span class="st">  </span><span class="co"># remove &quot;old&quot; data. It turns out that old data is not complete. (some old municipalities are not included)</span></span>
+<span id="cb4-24"><a href="#cb4-24"></a><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span><span class="kw">ends_with</span>(<span class="st">&quot;old&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-25"><a href="#cb4-25"></a><span class="st">  </span><span class="co"># join 2019-2020 change. </span></span>
+<span id="cb4-26"><a href="#cb4-26"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2019</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2020&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2020&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-28"><a href="#cb4-28"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2019&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2019&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-29"><a href="#cb4-29"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-30"><a href="#cb4-30"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2019</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-31"><a href="#cb4-31"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-32"><a href="#cb4-32"></a><span class="st">  </span><span class="co"># expand the data by 2018-2019</span></span>
+<span id="cb4-33"><a href="#cb4-33"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2018</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-34"><a href="#cb4-34"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2019</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-35"><a href="#cb4-35"></a><span class="st">  </span><span class="co"># if the muni info 2019 is NA, replace with 2020 (means no change since 2019)</span></span>
+<span id="cb4-36"><a href="#cb4-36"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2019 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2019</span>),muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>),</span>
+<span id="cb4-37"><a href="#cb4-37"></a>         <span class="dt">muni_num_2019 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2019</span>),muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-38"><a href="#cb4-38"></a><span class="st">  </span><span class="co"># join 2018 data using 2019 names. </span></span>
+<span id="cb4-39"><a href="#cb4-39"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2018</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2019&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2019&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-40"><a href="#cb4-40"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-41"><a href="#cb4-41"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2018&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2018&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-42"><a href="#cb4-42"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-43"><a href="#cb4-43"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2018</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-44"><a href="#cb4-44"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-45"><a href="#cb4-45"></a><span class="st">  </span><span class="co"># ===== repeat =======</span></span>
+<span id="cb4-46"><a href="#cb4-46"></a><span class="st">  </span><span class="co"># expand the data by 2018-2019</span></span>
+<span id="cb4-47"><a href="#cb4-47"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2017</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-48"><a href="#cb4-48"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-49"><a href="#cb4-49"></a><span class="st"> </span><span class="co"># if the muni info 2018 is NA, replace with 2020 (means no change since 2019)</span></span>
+<span id="cb4-50"><a href="#cb4-50"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2018 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2018</span>),muni_name_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>),</span>
+<span id="cb4-51"><a href="#cb4-51"></a>         <span class="dt">muni_num_2018 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2018</span>),muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-52"><a href="#cb4-52"></a><span class="st">  </span><span class="co"># join 2017 data using 2018 names. </span></span>
+<span id="cb4-53"><a href="#cb4-53"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2017</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2018&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2018&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-54"><a href="#cb4-54"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-55"><a href="#cb4-55"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2017&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2017&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-56"><a href="#cb4-56"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-57"><a href="#cb4-57"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2017</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-58"><a href="#cb4-58"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-59"><a href="#cb4-59"></a><span class="co"># ===== repeat =======</span></span>
+<span id="cb4-60"><a href="#cb4-60"></a><span class="st">  </span><span class="co"># expand the data by 2017-2019</span></span>
+<span id="cb4-61"><a href="#cb4-61"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2016</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-62"><a href="#cb4-62"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-63"><a href="#cb4-63"></a><span class="st"> </span><span class="co"># if the muni info 2017 is NA, replace with 2018 (means no change since 2017)</span></span>
+<span id="cb4-64"><a href="#cb4-64"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2017 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2017</span>),muni_name_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>),</span>
+<span id="cb4-65"><a href="#cb4-65"></a>         <span class="dt">muni_num_2017 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2017</span>),muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-66"><a href="#cb4-66"></a><span class="st">  </span><span class="co"># join 2016 data using 2017 names. </span></span>
+<span id="cb4-67"><a href="#cb4-67"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2016</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2017&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2017&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-68"><a href="#cb4-68"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-69"><a href="#cb4-69"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2016&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2016&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-70"><a href="#cb4-70"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-71"><a href="#cb4-71"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2016</span>,muni_name_<span class="dv">2016</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-72"><a href="#cb4-72"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-73"><a href="#cb4-73"></a><span class="co"># ===== repeat for 2015 =======</span></span>
+<span id="cb4-74"><a href="#cb4-74"></a><span class="st">  </span><span class="co"># expand the data by 2016-2019</span></span>
+<span id="cb4-75"><a href="#cb4-75"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>,muni_num_<span class="dv">2016</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2015</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-76"><a href="#cb4-76"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-77"><a href="#cb4-77"></a><span class="st"> </span><span class="co"># if the muni info 2016 is NA, replace with 2017 (means no change since 2017)</span></span>
+<span id="cb4-78"><a href="#cb4-78"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2016 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2016</span>),muni_name_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>),</span>
+<span id="cb4-79"><a href="#cb4-79"></a>         <span class="dt">muni_num_2016 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2016</span>),muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-80"><a href="#cb4-80"></a><span class="st">  </span><span class="co"># join 2016 data using 2016 names. </span></span>
+<span id="cb4-81"><a href="#cb4-81"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2015</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2016&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2016&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-82"><a href="#cb4-82"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-83"><a href="#cb4-83"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2015&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2015&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-84"><a href="#cb4-84"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-85"><a href="#cb4-85"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2015</span>,muni_name_<span class="dv">2015</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-86"><a href="#cb4-86"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-87"><a href="#cb4-87"></a><span class="st">  </span><span class="co"># ===== repeat for 2014 =======</span></span>
+<span id="cb4-88"><a href="#cb4-88"></a><span class="st">  </span><span class="co"># expand the data by 2015-2019</span></span>
+<span id="cb4-89"><a href="#cb4-89"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>,muni_num_<span class="dv">2016</span>,muni_name_<span class="dv">2015</span>,muni_num_<span class="dv">2015</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2014</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-90"><a href="#cb4-90"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-91"><a href="#cb4-91"></a><span class="st"> </span><span class="co"># if the muni info 2015 is NA, replace with 2016 (means no change since 2017)</span></span>
+<span id="cb4-92"><a href="#cb4-92"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2015 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2015</span>),muni_name_<span class="dv">2016</span>,muni_name_<span class="dv">2015</span>),</span>
+<span id="cb4-93"><a href="#cb4-93"></a>         <span class="dt">muni_num_2015 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2015</span>),muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-94"><a href="#cb4-94"></a><span class="st">  </span><span class="co"># join 2016 data using 2016 names. </span></span>
+<span id="cb4-95"><a href="#cb4-95"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2014</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2015&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2015&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-96"><a href="#cb4-96"></a><span class="st">  </span><span class="co"># change names</span></span>
+<span id="cb4-97"><a href="#cb4-97"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2014&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2014&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-98"><a href="#cb4-98"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-99"><a href="#cb4-99"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2014</span>,muni_name_<span class="dv">2014</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-100"><a href="#cb4-100"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-101"><a href="#cb4-101"></a><span class="st">  </span><span class="co"># ===== repeat for 2013 =======</span></span>
+<span id="cb4-102"><a href="#cb4-102"></a><span class="st">  </span><span class="co"># expand the data by 2014-2019</span></span>
+<span id="cb4-103"><a href="#cb4-103"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>,muni_num_<span class="dv">2016</span>,muni_name_<span class="dv">2015</span>,muni_num_<span class="dv">2015</span>,muni_name_<span class="dv">2014</span>,muni_num_<span class="dv">2014</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2013</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-104"><a href="#cb4-104"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-105"><a href="#cb4-105"></a><span class="st"> </span><span class="co"># if the muni info 2014 is NA, replace with 2015 (means no change since 2015)</span></span>
+<span id="cb4-106"><a href="#cb4-106"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2014 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2014</span>),muni_name_<span class="dv">2015</span>,muni_name_<span class="dv">2014</span>),</span>
+<span id="cb4-107"><a href="#cb4-107"></a>         <span class="dt">muni_num_2014 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2014</span>),muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-108"><a href="#cb4-108"></a><span class="st">  </span><span class="co"># join 2013 data using 2014 names. </span></span>
+<span id="cb4-109"><a href="#cb4-109"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2013</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2014&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2014&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-110"><a href="#cb4-110"></a><span class="st">  </span><span class="co"># change names to 2013</span></span>
+<span id="cb4-111"><a href="#cb4-111"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2013&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2013&quot;</span> =<span class="st">&quot;Kommune&quot;</span>)<span class="op">%&gt;%</span></span>
+<span id="cb4-112"><a href="#cb4-112"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-113"><a href="#cb4-113"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2013</span>,muni_name_<span class="dv">2013</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-114"><a href="#cb4-114"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-115"><a href="#cb4-115"></a><span class="st">  </span><span class="co"># ===== repeat for 2012 =======</span></span>
+<span id="cb4-116"><a href="#cb4-116"></a><span class="st">  </span><span class="co"># expand the data by 2013-2019</span></span>
+<span id="cb4-117"><a href="#cb4-117"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>,muni_num_<span class="dv">2016</span>,muni_name_<span class="dv">2015</span>,muni_num_<span class="dv">2015</span>,muni_name_<span class="dv">2014</span>,muni_num_<span class="dv">2014</span>,muni_name_<span class="dv">2013</span>,muni_num_<span class="dv">2013</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2012</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-118"><a href="#cb4-118"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-119"><a href="#cb4-119"></a><span class="st"> </span><span class="co"># if the muni info 2013 is NA, replace with 2014 (means no change since 2014)</span></span>
+<span id="cb4-120"><a href="#cb4-120"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2013 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2013</span>),muni_name_<span class="dv">2014</span>,muni_name_<span class="dv">2013</span>),</span>
+<span id="cb4-121"><a href="#cb4-121"></a>         <span class="dt">muni_num_2013 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2013</span>),muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-122"><a href="#cb4-122"></a><span class="st">  </span><span class="co"># join 2012 data using 2013 names. </span></span>
+<span id="cb4-123"><a href="#cb4-123"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2012</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2013&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2013&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-124"><a href="#cb4-124"></a><span class="st">  </span><span class="co"># change names to 2012</span></span>
+<span id="cb4-125"><a href="#cb4-125"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2012&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2012&quot;</span> =<span class="st">&quot;Kommune&quot;</span>)<span class="op">%&gt;%</span></span>
+<span id="cb4-126"><a href="#cb4-126"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-127"><a href="#cb4-127"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2012</span>,muni_name_<span class="dv">2012</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-128"><a href="#cb4-128"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-129"><a href="#cb4-129"></a><span class="st">  </span><span class="co"># ===== repeat for 2011 =======</span></span>
+<span id="cb4-130"><a href="#cb4-130"></a><span class="st">  </span><span class="co"># expand the data by 2012-2019</span></span>
+<span id="cb4-131"><a href="#cb4-131"></a><span class="st">  </span><span class="kw">expand</span>(<span class="kw">nesting</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_name_<span class="dv">2019</span>,muni_num_<span class="dv">2019</span>,muni_name_<span class="dv">2018</span>,muni_num_<span class="dv">2018</span>,muni_name_<span class="dv">2017</span>,muni_num_<span class="dv">2017</span>,muni_name_<span class="dv">2016</span>,muni_num_<span class="dv">2016</span>,muni_name_<span class="dv">2015</span>,muni_num_<span class="dv">2015</span>,muni_name_<span class="dv">2014</span>,muni_num_<span class="dv">2014</span>,muni_name_<span class="dv">2013</span>,muni_num_<span class="dv">2013</span>,muni_name_<span class="dv">2012</span>,muni_num_<span class="dv">2012</span>), <span class="dt">year =</span> <span class="dv">2019</span><span class="op">:</span><span class="dv">2011</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-132"><a href="#cb4-132"></a><span class="st">  </span><span class="kw">arrange</span>(county_num_<span class="dv">2020</span>,county_name_<span class="dv">2020</span>,muni_num_<span class="dv">2020</span>,muni_name_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>,muni_num_<span class="dv">2012</span>,<span class="kw">desc</span>(year)) <span class="op">%&gt;%</span></span>
+<span id="cb4-133"><a href="#cb4-133"></a><span class="st"> </span><span class="co"># if the muni info 2012 is NA, replace with 2013 (means no change since 2014)</span></span>
+<span id="cb4-134"><a href="#cb4-134"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2012 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2012</span>),muni_name_<span class="dv">2013</span>,muni_name_<span class="dv">2012</span>),</span>
+<span id="cb4-135"><a href="#cb4-135"></a>         <span class="dt">muni_num_2012 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2012</span>),muni_num_<span class="dv">2013</span>,muni_num_<span class="dv">2012</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-136"><a href="#cb4-136"></a><span class="st">  </span><span class="co"># join 2011 data using 2012 names. </span></span>
+<span id="cb4-137"><a href="#cb4-137"></a><span class="st">  </span><span class="kw">left_join</span>(dat_muni_<span class="dv">03</span>_<span class="dv">19</span> <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(year <span class="op">==</span><span class="st"> </span><span class="dv">2011</span>), <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;year&quot;</span> =<span class="st"> &quot;year&quot;</span>,<span class="st">&quot;muni_num_2012&quot;</span> =<span class="st"> &quot;Kommunenr_etter&quot;</span>,<span class="st">&quot;muni_name_2012&quot;</span> =<span class="st"> &quot;Kommune_etter&quot;</span>))  <span class="op">%&gt;%</span></span>
+<span id="cb4-138"><a href="#cb4-138"></a><span class="st">  </span><span class="co"># change names to 2011</span></span>
+<span id="cb4-139"><a href="#cb4-139"></a><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;muni_num_2011&quot;</span> =<span class="st">&quot;Kommunenr&quot;</span>,<span class="st">&quot;muni_name_2011&quot;</span> =<span class="st">&quot;Kommune&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-140"><a href="#cb4-140"></a><span class="st">  </span><span class="kw">group_by</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>,muni_num_<span class="dv">2012</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-141"><a href="#cb4-141"></a><span class="st">  </span><span class="kw">fill</span>(muni_num_<span class="dv">2011</span>,muni_name_<span class="dv">2011</span>,<span class="dt">.direction =</span> <span class="st">&quot;up&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-142"><a href="#cb4-142"></a><span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></span>
+<span id="cb4-143"><a href="#cb4-143"></a><span class="st"> </span><span class="co"># ==== End: No municipality change before 2011 in the data ====</span></span>
+<span id="cb4-144"><a href="#cb4-144"></a><span class="co"># if the muni info 2011 is NA, replace with 2013 (means no change since 2014)</span></span>
+<span id="cb4-145"><a href="#cb4-145"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">muni_name_2011 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_name_<span class="dv">2011</span>),muni_name_<span class="dv">2012</span>,muni_name_<span class="dv">2011</span>),</span>
+<span id="cb4-146"><a href="#cb4-146"></a>         <span class="dt">muni_num_2011 =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(muni_num_<span class="dv">2011</span>),muni_num_<span class="dv">2012</span>,muni_num_<span class="dv">2011</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-147"><a href="#cb4-147"></a><span class="st">  </span><span class="co"># remove overlapping data* names are overlapping by fill to join the previous year data. We don&#39;t need it now.</span></span>
+<span id="cb4-148"><a href="#cb4-148"></a><span class="st">  </span><span class="kw">distinct</span>(muni_num_<span class="dv">2020</span>,muni_num_<span class="dv">2019</span>,muni_num_<span class="dv">2018</span>,muni_num_<span class="dv">2017</span>,muni_num_<span class="dv">2016</span>,muni_num_<span class="dv">2015</span>,muni_num_<span class="dv">2014</span>,muni_num_<span class="dv">2013</span>,muni_num_<span class="dv">2012</span>,muni_num_<span class="dv">2011</span>,<span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></span>
+<span id="cb4-149"><a href="#cb4-149"></a><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span>year)</span>
+<span id="cb4-150"><a href="#cb4-150"></a></span>
+<span id="cb4-151"><a href="#cb4-151"></a><span class="co"># write out</span></span>
+<span id="cb4-152"><a href="#cb4-152"></a><span class="kw">write_csv</span>(dat_muni_<span class="dv">20</span>_<span class="dv">2</span>, <span class="st">&quot;municipality_2011_2020.csv&quot;</span>)</span>
+<span id="cb4-153"><a href="#cb4-153"></a><span class="kw">write_csv2</span>(dat_muni_<span class="dv">20</span>_<span class="dv">2</span>, <span class="st">&quot;municipality_2011_2020_semicolon.csv&quot;</span>)</span></code></pre></div>
+</details>
+<details class="chunk-details"><summary class="chunk-summary">Source</summary>
+<div class="sourceCode" id="cb5" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">colnames</span>(dat_muni_<span class="dv">20</span>_<span class="dv">2</span>)</span></code></pre></div>
+</details>
+<details class="chunk-details" open><summary class="chunk-summary">Output</summary>
+<pre class="chunk-output details show" data-summary="Output"><code>##  [1] &quot;county_num_2020&quot;  &quot;county_name_2020&quot; &quot;muni_num_2020&quot;    &quot;muni_name_2020&quot;  
+##  [5] &quot;muni_name_2019&quot;   &quot;muni_num_2019&quot;    &quot;muni_name_2018&quot;   &quot;muni_num_2018&quot;   
+##  [9] &quot;muni_name_2017&quot;   &quot;muni_num_2017&quot;    &quot;muni_name_2016&quot;   &quot;muni_num_2016&quot;   
+## [13] &quot;muni_name_2015&quot;   &quot;muni_num_2015&quot;    &quot;muni_name_2014&quot;   &quot;muni_num_2014&quot;   
+## [17] &quot;muni_name_2013&quot;   &quot;muni_num_2013&quot;    &quot;muni_name_2012&quot;   &quot;muni_num_2012&quot;   
+## [21] &quot;muni_num_2011&quot;    &quot;muni_name_2011&quot;</code></pre>
+</details>
+</section>
+<section id="merge-old-postal-code" class="level1">
+<h1>Merge old postal code</h1>
+<p>work in progress..</p>
+</section>
+</article>
+</main>
+</body>
+</html>

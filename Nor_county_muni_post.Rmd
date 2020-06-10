@@ -124,6 +124,8 @@ dat_post_2003_2019 <- dat_post_2003_2019 %>%
 
 # merge old municipality info
 
+The code is not elegant, but the compiled data include municipality code and municipality name in each year from 2011 to 2020. 
+
 ```{r}
 dat_muni_20 = dat_20 %>%
   dplyr::rename_with(~str_replace(.,"_2019","_old"), ends_with("_2019")) %>%
@@ -279,7 +281,18 @@ dat_muni_20_2 = dat_muni_20 %>%
 write_csv(dat_muni_20_2, "municipality_2011_2020.csv")
 write_csv2(dat_muni_20_2, "municipality_2011_2020_semicolon.csv")
 
+```
 
+```{r}
+colnames(dat_muni_20_2)
+```
+
+
+# Merge old postal code
+
+work in progress..
+
+```{r}
 
 ```
 
