@@ -1,0 +1,285 @@
+---
+title: "Merging the postal code and municipality number of Norway"
+author: "Keita Abe"
+date: "`r Sys.Date()`"
+output: 
+  minidown::mini_document:
+    framework: water
+    theme: light
+    code_folding:
+      source: hide
+      output: show
+      message: hide
+      warning: hide
+      error: hide
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,warning = FALSE)
+
+# library
+pacman::p_load(
+  dplyr,
+  tidyr,
+  readr,
+  purrr,
+  stringr,
+  readxl,
+  lubridate,
+  sp,
+  sf,
+  skimr,
+  patchwork
+)
+
+
+# load Japan map
+
+##jp_sh = readRDS("gadm36_JPN_0_sf.rds") # 国 (country)
+##jp_sh = readRDS("gadm36_JPN_1_sf.rds") # 都道府県 (prefecture)
+##jp_sh = readRDS("gadm36_JPN_2_sf.rds") # 市町区村 (cities/towns)
+
+##jp_sh2 = st_simplify(jp_sh, preserveTopology = TRUE, dTolerance = 0.1)
+## pryr::object_size(jp_sh)
+## pryr::object_size(jp_sh2)
+
+
+# ggplot test
+##ggplot(jp_sh2) + 
+  ##geom_sf()
+  
+```
+
+
+
+# Introduction
+
+In Norway, there are two types of codes that represents the geographic locations: postal code and municipality number. Postal code (postnummer) is a 4 digits number, mainly used for postal address. Municipality number is also 4 digits, which represents the municipality (kommune), which is a administrative unit. The first two digits of municipality number is corresponding to the county (fylke) which is a larger administrative unit. This two digits of county number is in accordance with ISO 3166-2:NO.((New county number after 2020 has not been published in ISO3166-2 )) 
+
+Some data includes postal codes as location information, but others use municipality number. It is convenient to have a compatible data between municipality number and postal code. The issue is that Norway experienced municipality/county mergers and the numbers are accordingly changed. 
+
+The major mergers of counties are in two times: 2018 and 2020. On January 1st of 2018, Nord-Trøndelag and Sør-Trøndelag counties are merged as Trøndelag. 16 and 17 were assigned to these two counties, but the new county uses 50 as the county code, and the old codes are depreciated. On January 1st of 2020, there happened large merger event and the number of counties became 11 from 19. 
+
+- Finnmark and Troms are merged as *Troms og Finnmark* and assigned the code *54*
+- Hordaland and Sogn og Fjordane are merged as *Vestland* and assigned the code *46*.
+- Aust-Agder and Vest-Agder are merged as *Agder* and assigned the code *42*.
+- Vestfold and Telemark are merged as *Vestfold og Telemark* and assigned the code *38*.
+- Hedmark and Oppland are merged as *Innlandet* and assigned the code *34*.
+- Akershus, Buskerud and Østfold are merged as *Viken* and assinged the code *30*
+
+Accordingly, the municipality code are changed. 
+
+# The municipality code in 2019 and 2020
+
+The data of new municipality codes after 2020 mergers are available on [Kartverket]( https://www.kartverket.no/en/kommunereform/tekniske-endringer/kommune--og-regionsendringer-2020/)
+
+
+ 
+```{r}
+dat_20 <- readxl::read_xlsx("fylker-kommuner-2019-2020-alle.xlsx") %>%
+  # change column names into English
+  set_names("county_num_2019","county_name_2019","muni_num_2019","muni_name_2019",
+            "county_num_2020","county_name_2020","muni_num_2020","muni_name_2020")
+```
+
+
+# The postal code in 2020
+
+The data of postal code in 2020 is available on [bring.no](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning)
+
+```{r}
+dat_post_20 <- readxl::read_xlsx("Postnummerregister-Excel.xlsx") %>%
+  # change column names into English
+  set_names("post_code_2020","post_adrs_2020","muni_num_2020","muni_name_2020","post_cat")
+
+```
+
+category (post_cat) represnts what type of postal code is. 
+
+- B: Both street addresses and mailboxes
+- F: Multiple uses (common)
+- G: Street addresses (and location addresses), ie "green mailboxes"
+- P: Mailboxes
+- S:Service postal code (these postal codes are not used for postal addresses)
+
+# Postal code before 2020
+
+```{r}
+dat_post_2003_2019 <- readxl::read_xlsx("Nye, endrede og opphørte postnummer.xlsx") %>%
+  mutate(Dato_kronlogisk = as.Date(Dato_kronlogisk))
+
+dat_type <- distinct(dat_post_2003_2019) %>%
+  distinct(Type_endring) %>%
+  mutate(Type_change = c("Changed primary municipality", "Changed place name","Discontinued and replaced","Discontinued, not replaced","Changed category","newly created","Changed zip code"))
+
+dat_post_2003_2019 <- dat_post_2003_2019 %>%
+  # remove the change in 2020 Jan 1st because it's in dat_post_20
+ # filter(Dato_kronlogisk != "2020-01-01" | Type_endring != "Endret primærkommune") %>%
+  left_join(dat_type)
+
+
+```
+
+# merge old municipality info
+
+```{r}
+dat_muni_20 = dat_20 %>%
+  dplyr::rename_with(~str_replace(.,"_2019","_old"), ends_with("_2019")) %>%
+  mutate(year = 2019) %>%
+  relocate(ends_with("_2020"), year)
+
+  # expand the data by years 2003-2019
+  ##dat_muni_expand = dat_muni_20 %>%
+  ##  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020), year = 2003:2019)
+
+# merge the expanded data. NAs for 2003-2018 for now
+#dat_muni_20 = dat_muni_20 %>% right_join(dat_muni_expand) %>%
+#  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,desc(year))
+
+# make annual data of municipality info
+
+dat_muni_03_19 = dat_post_2003_2019 %>%
+  filter(Type_change == "Changed primary municipality") %>%
+  mutate(year = year(Dato_kronlogisk)-1) %>%
+  distinct(year,Kommunenr, Kommune,Kommunenr_etter,Kommune_etter)
+  
+
+dat_muni_20_2 = dat_muni_20 %>%
+  # remove "old" data. It turns out that old data is not complete. (some old municipalities are not included)
+  dplyr::select(-ends_with("old")) %>%
+  # join 2019-2020 change. 
+  left_join(dat_muni_03_19 %>% filter(year == 2019), by = c("year" = "year","muni_num_2020" = "Kommunenr_etter","muni_name_2020" = "Kommune_etter")) %>%
+  # change names
+  rename("muni_num_2019" ="Kommunenr","muni_name_2019" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019) %>%
+  fill(muni_num_2019,muni_name_2019,.direction = "up") %>%
+  ungroup() %>%
+  # expand the data by 2018-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019), year = 2019:2018) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_name_2019,desc(year)) %>%
+  # if the muni info 2019 is NA, replace with 2020 (means no change since 2019)
+  mutate(muni_name_2019 = ifelse(is.na(muni_name_2019),muni_name_2020,muni_name_2019),
+         muni_num_2019 = ifelse(is.na(muni_num_2019),muni_num_2020,muni_num_2019)) %>%
+  # join 2018 data using 2019 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2018), by = c("year" = "year","muni_num_2019" = "Kommunenr_etter","muni_name_2019" = "Kommune_etter")) %>%
+  # change names
+  rename("muni_num_2018" ="Kommunenr","muni_name_2018" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018) %>%
+  fill(muni_num_2018,muni_name_2018,.direction = "up") %>%
+  ungroup() %>%
+  # ===== repeat =======
+  # expand the data by 2018-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018), year = 2019:2017) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,desc(year)) %>%
+ # if the muni info 2018 is NA, replace with 2020 (means no change since 2019)
+  mutate(muni_name_2018 = ifelse(is.na(muni_name_2018),muni_name_2019,muni_name_2018),
+         muni_num_2018 = ifelse(is.na(muni_num_2018),muni_num_2019,muni_num_2018)) %>%
+  # join 2017 data using 2018 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2017), by = c("year" = "year","muni_num_2018" = "Kommunenr_etter","muni_name_2018" = "Kommune_etter"))  %>%
+  # change names
+  rename("muni_num_2017" ="Kommunenr","muni_name_2017" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018) %>%
+  fill(muni_num_2017,muni_name_2017,.direction = "up") %>%
+  ungroup() %>%
+# ===== repeat =======
+  # expand the data by 2017-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017), year = 2019:2016) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,desc(year)) %>%
+ # if the muni info 2017 is NA, replace with 2018 (means no change since 2017)
+  mutate(muni_name_2017 = ifelse(is.na(muni_name_2017),muni_name_2018,muni_name_2017),
+         muni_num_2017 = ifelse(is.na(muni_num_2017),muni_num_2018,muni_num_2017)) %>%
+  # join 2016 data using 2017 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2016), by = c("year" = "year","muni_num_2017" = "Kommunenr_etter","muni_name_2017" = "Kommune_etter"))  %>%
+  # change names
+  rename("muni_num_2016" ="Kommunenr","muni_name_2016" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017) %>%
+  fill(muni_num_2016,muni_name_2016,.direction = "up") %>%
+  ungroup() %>%
+# ===== repeat for 2015 =======
+  # expand the data by 2016-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017,muni_name_2016,muni_num_2016), year = 2019:2015) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,desc(year)) %>%
+ # if the muni info 2016 is NA, replace with 2017 (means no change since 2017)
+  mutate(muni_name_2016 = ifelse(is.na(muni_name_2016),muni_name_2017,muni_name_2016),
+         muni_num_2016 = ifelse(is.na(muni_num_2016),muni_num_2017,muni_num_2016)) %>%
+  # join 2016 data using 2016 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2015), by = c("year" = "year","muni_num_2016" = "Kommunenr_etter","muni_name_2016" = "Kommune_etter"))  %>%
+  # change names
+  rename("muni_num_2015" ="Kommunenr","muni_name_2015" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016) %>%
+  fill(muni_num_2015,muni_name_2015,.direction = "up") %>%
+  ungroup() %>%
+  # ===== repeat for 2014 =======
+  # expand the data by 2015-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017,muni_name_2016,muni_num_2016,muni_name_2015,muni_num_2015), year = 2019:2014) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,desc(year)) %>%
+ # if the muni info 2015 is NA, replace with 2016 (means no change since 2017)
+  mutate(muni_name_2015 = ifelse(is.na(muni_name_2015),muni_name_2016,muni_name_2015),
+         muni_num_2015 = ifelse(is.na(muni_num_2015),muni_num_2016,muni_num_2015)) %>%
+  # join 2016 data using 2016 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2014), by = c("year" = "year","muni_num_2015" = "Kommunenr_etter","muni_name_2015" = "Kommune_etter"))  %>%
+  # change names
+  rename("muni_num_2014" ="Kommunenr","muni_name_2014" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015) %>%
+  fill(muni_num_2014,muni_name_2014,.direction = "up") %>%
+  ungroup() %>%
+  # ===== repeat for 2013 =======
+  # expand the data by 2014-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017,muni_name_2016,muni_num_2016,muni_name_2015,muni_num_2015,muni_name_2014,muni_num_2014), year = 2019:2013) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,desc(year)) %>%
+ # if the muni info 2014 is NA, replace with 2015 (means no change since 2015)
+  mutate(muni_name_2014 = ifelse(is.na(muni_name_2014),muni_name_2015,muni_name_2014),
+         muni_num_2014 = ifelse(is.na(muni_num_2014),muni_num_2015,muni_num_2014)) %>%
+  # join 2013 data using 2014 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2013), by = c("year" = "year","muni_num_2014" = "Kommunenr_etter","muni_name_2014" = "Kommune_etter"))  %>%
+  # change names to 2013
+  rename("muni_num_2013" ="Kommunenr","muni_name_2013" ="Kommune")%>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014) %>%
+  fill(muni_num_2013,muni_name_2013,.direction = "up") %>%
+  ungroup() %>%
+  # ===== repeat for 2012 =======
+  # expand the data by 2013-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017,muni_name_2016,muni_num_2016,muni_name_2015,muni_num_2015,muni_name_2014,muni_num_2014,muni_name_2013,muni_num_2013), year = 2019:2012) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,muni_num_2013,desc(year)) %>%
+ # if the muni info 2013 is NA, replace with 2014 (means no change since 2014)
+  mutate(muni_name_2013 = ifelse(is.na(muni_name_2013),muni_name_2014,muni_name_2013),
+         muni_num_2013 = ifelse(is.na(muni_num_2013),muni_num_2014,muni_num_2013)) %>%
+  # join 2012 data using 2013 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2012), by = c("year" = "year","muni_num_2013" = "Kommunenr_etter","muni_name_2013" = "Kommune_etter"))  %>%
+  # change names to 2012
+  rename("muni_num_2012" ="Kommunenr","muni_name_2012" ="Kommune")%>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,muni_num_2013) %>%
+  fill(muni_num_2012,muni_name_2012,.direction = "up") %>%
+  ungroup() %>%
+  # ===== repeat for 2011 =======
+  # expand the data by 2012-2019
+  expand(nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_name_2019,muni_num_2019,muni_name_2018,muni_num_2018,muni_name_2017,muni_num_2017,muni_name_2016,muni_num_2016,muni_name_2015,muni_num_2015,muni_name_2014,muni_num_2014,muni_name_2013,muni_num_2013,muni_name_2012,muni_num_2012), year = 2019:2011) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,muni_num_2013,muni_num_2012,desc(year)) %>%
+ # if the muni info 2012 is NA, replace with 2013 (means no change since 2014)
+  mutate(muni_name_2012 = ifelse(is.na(muni_name_2012),muni_name_2013,muni_name_2012),
+         muni_num_2012 = ifelse(is.na(muni_num_2012),muni_num_2013,muni_num_2012)) %>%
+  # join 2011 data using 2012 names. 
+  left_join(dat_muni_03_19 %>% filter(year == 2011), by = c("year" = "year","muni_num_2012" = "Kommunenr_etter","muni_name_2012" = "Kommune_etter"))  %>%
+  # change names to 2011
+  rename("muni_num_2011" ="Kommunenr","muni_name_2011" ="Kommune") %>%
+  group_by(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,muni_num_2013,muni_num_2012) %>%
+  fill(muni_num_2011,muni_name_2011,.direction = "up") %>%
+  ungroup() %>%
+ # ==== End: No municipality change before 2011 in the data ====
+# if the muni info 2011 is NA, replace with 2013 (means no change since 2014)
+  mutate(muni_name_2011 = ifelse(is.na(muni_name_2011),muni_name_2012,muni_name_2011),
+         muni_num_2011 = ifelse(is.na(muni_num_2011),muni_num_2012,muni_num_2011)) %>%
+  # remove overlapping data* names are overlapping by fill to join the previous year data. We don't need it now.
+  distinct(muni_num_2020,muni_num_2019,muni_num_2018,muni_num_2017,muni_num_2016,muni_num_2015,muni_num_2014,muni_num_2013,muni_num_2012,muni_num_2011,.keep_all = TRUE) %>%
+  dplyr::select(-year)
+
+# write out
+write_csv(dat_muni_20_2, "municipality_2011_2020.csv")
+write_csv2(dat_muni_20_2, "municipality_2011_2020_semicolon.csv")
+
+
+
+```
+
