@@ -7,6 +7,14 @@ The code to compile the data is [here](https://keita43a.github.io/Postal_code_re
 
 ## Municipality Data
 
+The data include the municipality name and code from 2011 to 2020. 
+
 The data is ["municipality_2011_2020.csv"](https://keita43a.github.io/Postal_code_region_number_Norway/municipality_2011_2020.csv)).
 
 If you prefer semicolon-separated CSV, [here](https://keita43a.github.io/Postal_code_region_number_Norway/municipality_2011_2020_semicolon.csv)).
+
+## Postal code data 
+
+The data include the postal address and code from 2011 to 2020. 
+
+Work in Progress.
