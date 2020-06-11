@@ -1,0 +1,25 @@
+county_num_2020,county_name_2020,county_num_2019,county_name_2019,county_num_2017,county_name_2017
+30,Viken,01,Østfold,01,Østfold
+30,Viken,02,Akershus,02,Akershus
+03,Oslo,03,Oslo,03,Oslo
+34,Innlandet,04,Hedmark,04,Hedmark
+34,Innlandet,05,Oppland,05,Oppland
+30,Viken,05,Oppland,05,Oppland
+30,Viken,06,Buskerud,06,Buskerud
+38,Vestfold Og Telemark,07,Vestfold,07,Vestfold
+30,Viken,07,Vestfold,07,Vestfold
+38,Vestfold Og Telemark,08,Telemark,08,Telemark
+42,Agder,09,Aust-Agder,09,Aust-Agder
+42,Agder,10,Vest-Agder,10,Vest-Agder
+11,Rogaland,11,Rogaland,11,Rogaland
+46,Vestland,12,Hordaland,12,Hordaland
+46,Vestland,14,Sogn Og Fjordane,14,Sogn Og Fjordane
+15,Møre Og Romsdal,14,Sogn Og Fjordane,14,Sogn Og Fjordane
+15,Møre Og Romsdal,15,Møre Og Romsdal,15,Møre Og Romsdal
+50,Trøndelag,15,Møre Og Romsdal,15,Møre Og Romsdal
+18,Nordland,18,Nordland,18,Nordland
+54,Troms Og Finnmark,18,Nordland,18,Nordland
+54,Troms Og Finnmark,19,Troms,19,Troms
+54,Troms Og Finnmark,20,Finnmark,20,Finnmark
+50,Trøndelag,50,Trøndelag,17,Nord-Trøndelag
+50,Trøndelag,50,Trøndelag,16,Sør-Trøndelag

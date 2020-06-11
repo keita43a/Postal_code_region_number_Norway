@@ -28,8 +28,8 @@ pacman::p_load(
   stringr,
   readxl,
   lubridate,
-  sp,
-  sf,
+  knitr,
+  kableExtra,
   skimr,
   patchwork
 )
@@ -76,16 +76,22 @@ Accordingly, the municipality code are changed.
 The data of new municipality codes after 2020 mergers are available on [Kartverket]( https://www.kartverket.no/en/kommunereform/tekniske-endringer/kommune--og-regionsendringer-2020/)
 
 
- 
+## original county and municipality data 2019-2020
+
+
 ```{r}
 dat_20 <- readxl::read_xlsx("fylker-kommuner-2019-2020-alle.xlsx") %>%
   # change column names into English
   set_names("county_num_2019","county_name_2019","muni_num_2019","muni_name_2019",
             "county_num_2020","county_name_2020","muni_num_2020","muni_name_2020")
+
+
 ```
 
 
-# The postal code in 2020
+
+
+## The postal code in 2020
 
 The data of postal code in 2020 is available on [bring.no](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning)
 
@@ -104,7 +110,7 @@ category (post_cat) represnts what type of postal code is.
 - P: Mailboxes
 - S:Service postal code (these postal codes are not used for postal addresses)
 
-# Postal code before 2020
+## Origianl postal code data before 2020 (2003-2019)
 
 ```{r}
 dat_post_2003_2019 <- readxl::read_xlsx("Nye, endrede og opphørte postnummer.xlsx") %>%
@@ -119,10 +125,46 @@ dat_post_2003_2019 <- dat_post_2003_2019 %>%
  # filter(Dato_kronlogisk != "2020-01-01" | Type_endring != "Endret primærkommune") %>%
   left_join(dat_type)
 
+```
+
+# Old and 2020 County data
+
+As described above, county has changed by mergers in 2018 and 2020. 
+The data below include which current county belonged to the previous counties. 
+
+```{r}
+dat_cnty_20 <- dat_20 %>%
+  distinct(county_name_2019,county_num_2019,county_name_2020,county_num_2020) %>%
+  mutate(across(contains("name"),str_to_title)) %>%
+  # add 2018 change
+  left_join(data.frame(
+    county_num_2019 = c(50,50),
+    county_name_2019 = c("Trøndelag","Trøndelag"),
+    county_num_2017 = c(17,16),
+    county_name_2017 = as.character(c("Nord-Trøndelag","Sør-Trøndelag"))),
+    by = c("county_num_2019","county_name_2019")) %>%
+  mutate(county_name_2017 = ifelse(is.na(county_name_2017),county_name_2019,as.character(county_name_2017)),
+         county_num_2017 = ifelse(is.na(county_num_2017),county_num_2019,as.character(county_num_2017))) %>%
+  relocate(county_num_2020, county_name_2020) %>%
+  mutate(across(contains("num"),~str_pad(.x,2,pad =0)))
+
+# write out
+write_csv(dat_cnty_20, "county_2017_2020.csv")
+write_csv2(dat_cnty_20, "county_2017_2020_semicolon.csv")
+
 
 ```
 
-# merge old municipality info
+#### Data preview
+
+```{r}
+knitr::kable(head(dat_cnty_20)) %>%
+  kable_styling() %>%
+  scroll_box(width = "100%", height = "200px")
+```
+
+
+# Old and 2020 municipality info
 
 The code is not elegant, but the compiled data include municipality code and municipality name in each year from 2011 to 2020. 
 
@@ -278,21 +320,154 @@ dat_muni_20_2 = dat_muni_20 %>%
   dplyr::select(-year)
 
 # write out
-write_csv(dat_muni_20_2, "municipality_2011_2020.csv")
-write_csv2(dat_muni_20_2, "municipality_2011_2020_semicolon.csv")
+##write_csv(dat_muni_20_2, "municipality_2011_2020.csv")
+##write_csv2(dat_muni_20_2, "municipality_2011_2020_semicolon.csv")
+
+# long format: each row is 2020 info x each year of old info.
+dat_muni_20_2_long = dat_muni_20_2 %>%
+  pivot_longer(-c(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020),
+               names_to = c(".value","year"),
+               names_pattern = "(.*_.*)_(.*)") %>%
+  rename("muni_name_old" = "muni_name", "muni_num_old" = "muni_num") %>% 
+  mutate(year = as.numeric(year),
+         county_num_2020 = as.character(str_pad(county_num_2020,2,pad = "0")),
+         muni_num_2020 = as.character(str_pad(muni_num_2020,4,pad = "0")),
+         muni_num_old = as.character(str_pad(muni_num_old,4,pad = "0")))
+
+# extend back to 2002
+dat_muni_20_3_long = dat_muni_20_2_long %>%
+  right_join(expand(dat_muni_20_2_long,nesting(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020), year = 2002:2019), by = c("county_num_2020","county_name_2020","muni_num_2020","muni_name_2020","year")) %>%
+  arrange(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020,year) %>%
+  group_by(county_num_2020,county_name_2020,muni_num_2020,muni_name_2020) %>%
+  fill(muni_num_old,muni_name_old,.direction = "up") %>%
+  ungroup()
+
+# write out
+write_csv(dat_muni_20_3_long, "municipality_2011_2020_long.csv")
+write_csv2(dat_muni_20_3_long, "municipality_2011_2020_long_semicolon.csv")
+
 
 ```
+
+
+#### Data preview
 
 ```{r}
-colnames(dat_muni_20_2)
+knitr::kable(head(dat_muni_20_3_long)) %>%
+  kable_styling() %>%
+  scroll_box(width = "100%", height = "200px")
 ```
 
 
-# Merge old postal code
+# Old and 2020 postal code data
 
-work in progress..
+The postal code data in 2020 and corresponding old information back to 2002.
+Annual data is determined as of Decemebr 31st of each year.
+For example, if a change is made in Octber 1st in 2013, 2013 data reflects the change. 
+
 
 ```{r}
+# the main data of post address is dat_post_20
 
+# old data 2003-2019
+dat_post_03_19 <- dat_post_2003_2019 %>%
+  mutate(year = year(Dato_kronlogisk)-1) %>%
+  # because newly created post address is "after change" address.
+  mutate(Postnummer_etter = ifelse(Type_endring == "Nyopprettet",Postnummer,Postnummer_etter),
+         Poststedsnavn_etter = ifelse(Type_endring == "Nyopprettet",Poststedsnavn,Poststedsnavn_etter),
+         Kommunenr_etter = ifelse(Type_endring == "Nyopprettet",Kommunenr,Kommunenr_etter),
+         Kommune_etter = ifelse(Type_endring == "Nyopprettet",Kommune,Kommune_etter),
+         Kategori_etter = ifelse(Type_endring == "Nyopprettet",Kategori,Kategori_etter)) %>%
+  # change the numeber to character and leading 0 (e.g. 301 is 0301)
+  mutate(Postnummer_etter = as.character(str_pad(Postnummer_etter,4,pad = "0")),
+         Postnummer = as.character(str_pad(Postnummer,4,pad = "0")))
+
+# extract discontinued address and attach to the main data
+dat_discont = dat_post_03_19 %>% filter(Type_endring == "Opphørt, ikke erstattet") %>%
+  dplyr::select(Dato_kronlogisk,Type_endring,Postnummer,Poststedsnavn,Kommunenr,Kommune,Kategori,Type_change,year)
+
+dat_discont2 = dat_discont %>%
+  # expand to fill the old info.
+  right_join(expand(dat_discont,nesting(Postnummer, Poststedsnavn), year = 2002:2019)) %>%
+  arrange(Postnummer,year) %>%
+  group_by(Postnummer,Poststedsnavn) %>%
+  fill(Kommunenr,Kommune,Kategori, .direction = "up") %>%
+  ungroup() %>%
+  # remove "new" data (because discontinued)
+  filter(!is.na(Dato_kronlogisk))
+
+# merge the changed log based on "after change" address as address in 2020
+dat_post_20_2 <- dat_post_20 %>%
+    expand(nesting(post_code_2020,post_adrs_2020,muni_num_2020,muni_name_2020,post_cat), year = 2002:2019) %>%
+  left_join(dat_post_03_19, by = c("post_code_2020" = "Postnummer_etter", "post_adrs_2020" = "Poststedsnavn_etter", "year" = "year")) %>%
+  arrange(post_code_2020,post_adrs_2020,year) %>%
+  group_by(post_code_2020, post_adrs_2020) %>%
+  # fill the old information
+  # do not fill "Type_change" in order to indicate when it was changed. 
+  fill(Postnummer,Poststedsnavn,Kommunenr,Kommune,Kategori,Kommunenr_etter,Kommune_etter,Kategori_etter, .direction = "up") %>%
+  ungroup() %>%
+  bind_rows(dat_discont2) 
+
+# check: not attachd to the main data
+temp = anti_join(dat_post_03_19,dat_post_20_2) %>%
+  filter(Type_endring != "Opphørt, ikke erstattet")
+
+# why are they remaining? Because the "after change" address does not exist in 2020.
+# "after change" was also changed later.
+# -> merge to the old address info
+
+# idea: make the df that merges un-attached rows and 2020 info based on "before change" data in 2020
+# then bind_rows with the main data
+temp2 = temp %>%
+  left_join(dat_post_20_2,by = c("Postnummer_etter" = "Postnummer","Poststedsnavn_etter" ="Poststedsnavn", "year" = "year")) %>%
+  dplyr::select(-ends_with(".y")) %>%
+  rename_with(~str_replace(.,".x",""),ends_with(".x"))
+
+# merge (bind) unattached data
+dat_post_20_3 <- dat_post_20_2 %>% 
+  bind_rows(temp2) %>%
+  # fill old information if NA. replaced with the current info
+  mutate(Postnummer = ifelse(is.na(Postnummer),post_code_2020,Postnummer),
+         Poststedsnavn = ifelse(is.na(Poststedsnavn),post_adrs_2020,Poststedsnavn),
+         Kategori = ifelse(is.na(Kategori),post_cat,Kategori)) %>%
+  dplyr::select(post_code_2020,post_adrs_2020,muni_num_2020,muni_name_2020,post_cat,
+                year, Postnummer, Poststedsnavn, Kommunenr, Kommune, Kategori, Type_change, Dato_kronlogisk) %>%
+  # rename to English
+  rename("post_code_old" = "Postnummer", "post_adrs_old" = "Poststedsnavn", "muni_code_old" = "Kommunenr", "muni_name_old" =  "Kommune",  "post_cat_old" = "Kategori", "Date_change" = "Dato_kronlogisk") %>%
+  arrange(post_code_2020,post_adrs_2020,year) %>%
+  # discontinued addresses, assigned 9999 postal code
+  mutate(post_code_2020 = ifelse(is.na(post_code_2020),"9999",post_code_2020),
+         post_adrs_2020 = ifelse(is.na(post_adrs_2020),"Discontinued",post_adrs_2020)) %>%
+  # merge old municipalities info
+  left_join(dat_muni_20_3_long, by = c("year", "muni_num_2020")) %>%
+  mutate(muni_code_old = ifelse(is.na(muni_code_old), muni_num_old,muni_code_old),
+         muni_name_old.x = ifelse(is.na(muni_name_old.x), muni_name_old.y,muni_name_old.x)) %>%
+  dplyr::select(-ends_with(".y"),-muni_num_old) %>%
+  rename_with(~str_replace(.,".x",""),ends_with(".x")) %>%
+  relocate(county_num_2020,county_name_2020, .after = muni_name_2020) %>%
+  # merge old county names and code
+  mutate(muni_code_old = str_pad(muni_code_old,4,pad = 0)) %>%
+  # change all title letters 
+  mutate(across(contains("name"),str_to_title)) %>%
+  left_join(dat_cnty_20,by = c("county_num_2020","county_name_2020")) %>%
+  mutate(county_num_old = ifelse(year >= 2018, county_num_2019,county_num_2017),
+         county_name_old = ifelse(year >= 2018, county_name_2019,county_name_2017)) %>%
+  # remove the 2019 and 2017 county info
+  dplyr::select(-ends_with("_2019"),-ends_with("_2017")) %>%
+  relocate(county_num_old, county_name_old, .after = muni_name_old)
+
+# write out
+write_csv(dat_post_20_3,"postal_code_2002_2020_long.csv")
+write_csv2(dat_post_20_3,"postal_code_2002_2020_long_semicolon.csv")
 ```
 
+#### Data preview
+
+```{r}
+knitr::kable(head(dat_post_20_3))  %>%
+  kable_styling() %>%
+  scroll_box(width = "100%", height = "200px")
+```
+
+
+Task left: Old Municipality/county info in the discontinued post addresses are missing. 
