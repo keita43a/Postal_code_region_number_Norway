@@ -91,7 +91,7 @@ dat_20 <- readxl::read_xlsx("fylker-kommuner-2019-2020-alle.xlsx") %>%
 
 
 
-## The postal code in 2020
+## Original postal code data in 2020
 
 The data of postal code in 2020 is available on [bring.no](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning)
 
@@ -110,7 +110,9 @@ category (post_cat) represnts what type of postal code is.
 - P: Mailboxes
 - S:Service postal code (these postal codes are not used for postal addresses)
 
-## Origianl postal code data before 2020 (2003-2019)
+## Original postal code data before 2020 (2003-2019)
+
+The data of postal code since 2003 to 2019 is available on [bring.no](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning)
 
 ```{r}
 dat_post_2003_2019 <- readxl::read_xlsx("Nye, endrede og opphørte postnummer.xlsx") %>%

@@ -378,8 +378,8 @@ top: 5px;
 <li><a href="#the-municipality-code-in-2019-and-2020">The municipality code in 2019 and 2020</a>
 <ul>
 <li><a href="#original-county-and-municipality-data-2019-2020">original county and municipality data 2019-2020</a></li>
-<li><a href="#the-postal-code-in-2020">The postal code in 2020</a></li>
-<li><a href="#origianl-postal-code-data-before-2020-2003-2019">Origianl postal code data before 2020 (2003-2019)</a></li>
+<li><a href="#original-postal-code-data-in-2020">Original postal code data in 2020</a></li>
+<li><a href="#original-postal-code-data-before-2020-2003-2019">Original postal code data before 2020 (2003-2019)</a></li>
 </ul></li>
 <li><a href="#old-and-2020-county-data">Old and 2020 County data</a></li>
 <li><a href="#old-and-2020-municipality-info">Old and 2020 municipality info</a></li>
@@ -414,8 +414,8 @@ top: 5px;
 <span id="cb1-4"><a href="#cb1-4"></a>            <span class="st">&quot;county_num_2020&quot;</span>,<span class="st">&quot;county_name_2020&quot;</span>,<span class="st">&quot;muni_num_2020&quot;</span>,<span class="st">&quot;muni_name_2020&quot;</span>)</span></code></pre></div>
 </details>
 </section>
-<section id="the-postal-code-in-2020" class="level2">
-<h2>The postal code in 2020</h2>
+<section id="original-postal-code-data-in-2020" class="level2">
+<h2>Original postal code data in 2020</h2>
 <p>The data of postal code in 2020 is available on <a href="https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning">bring.no</a></p>
 <details class="chunk-details"><summary class="chunk-summary">Source</summary>
 <div class="sourceCode" id="cb2" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>dat_post_<span class="dv">20</span> &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_xlsx</span>(<span class="st">&quot;Postnummerregister-Excel.xlsx&quot;</span>) <span class="op">%&gt;%</span></span>
@@ -431,8 +431,9 @@ top: 5px;
 <li>S:Service postal code (these postal codes are not used for postal addresses)</li>
 </ul>
 </section>
-<section id="origianl-postal-code-data-before-2020-2003-2019" class="level2">
-<h2>Origianl postal code data before 2020 (2003-2019)</h2>
+<section id="original-postal-code-data-before-2020-2003-2019" class="level2">
+<h2>Original postal code data before 2020 (2003-2019)</h2>
+<p>The data of postal code since 2003 to 2019 is available on <a href="https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer/postnummertabeller-veiledning">bring.no</a></p>
 <details class="chunk-details"><summary class="chunk-summary">Source</summary>
 <div class="sourceCode" id="cb3" data-summary="Source"><pre class="sourceCode r chunk-source details"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dat_post_<span class="dv">2003</span>_<span class="dv">2019</span> &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_xlsx</span>(<span class="st">&quot;Nye, endrede og opphørte postnummer.xlsx&quot;</span>) <span class="op">%&gt;%</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Dato_kronlogisk =</span> <span class="kw">as.Date</span>(Dato_kronlogisk))</span>
@@ -1078,7 +1079,11 @@ OSLO
 <span id="cb8-85"><a href="#cb8-85"></a>         <span class="dt">county_name_old =</span> <span class="kw">ifelse</span>(year <span class="op">&gt;=</span><span class="st"> </span><span class="dv">2018</span>, county_name_<span class="dv">2019</span>,county_name_<span class="dv">2017</span>)) <span class="op">%&gt;%</span></span>
 <span id="cb8-86"><a href="#cb8-86"></a><span class="st">  </span><span class="co"># remove the 2019 and 2017 county info</span></span>
 <span id="cb8-87"><a href="#cb8-87"></a><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span><span class="kw">ends_with</span>(<span class="st">&quot;_2019&quot;</span>),<span class="op">-</span><span class="kw">ends_with</span>(<span class="st">&quot;_2017&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb8-88"><a href="#cb8-88"></a><span class="st">  </span><span class="kw">relocate</span>(county_num_old, county_name_old, <span class="dt">.after =</span> muni_name_old)</span></code></pre></div>
+<span id="cb8-88"><a href="#cb8-88"></a><span class="st">  </span><span class="kw">relocate</span>(county_num_old, county_name_old, <span class="dt">.after =</span> muni_name_old)</span>
+<span id="cb8-89"><a href="#cb8-89"></a></span>
+<span id="cb8-90"><a href="#cb8-90"></a><span class="co"># write out</span></span>
+<span id="cb8-91"><a href="#cb8-91"></a><span class="kw">write_csv</span>(dat_post_<span class="dv">20</span>_<span class="dv">3</span>,<span class="st">&quot;postal_code_2002_2020_long.csv&quot;</span>)</span>
+<span id="cb8-92"><a href="#cb8-92"></a><span class="kw">write_csv2</span>(dat_post_<span class="dv">20</span>_<span class="dv">3</span>,<span class="st">&quot;postal_code_2002_2020_long_semicolon.csv&quot;</span>)</span></code></pre></div>
 </details>
 <section id="data-preview-2" class="level4">
 <h4>Data preview</h4>
